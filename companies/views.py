@@ -67,3 +67,50 @@ def company_detail(request, company_id):
         'profit_loss_json': json.dumps(pl_data),
         'cash_flow_json': json.dumps(cf_data),
     })
+
+def screener(request):
+    min_roe = request.GET.get("min_roe", "")
+    max_de = request.GET.get("max_de", "")
+    min_score = request.GET.get("min_score", "")
+    label = request.GET.get("label", "")
+
+    companies = Company.objects.all()
+    scores = {s.company_id: s for s in HealthScore.objects.all()}
+    bs_data = {}
+    from .models import BalanceSheet
+    for b in BalanceSheet.objects.all().order_by("fiscal_year"):
+        bs_data[b.company_id] = b
+
+    result = []
+    for c in companies:
+        h = scores.get(c.company_id)
+        b = bs_data.get(c.company_id)
+        if not h:
+            continue
+        if label and h.health_label != label:
+            continue
+        if min_score and float(h.overall_score or 0) < float(min_score):
+            continue
+        if min_roe and float(c.roe_percentage or 0) < float(min_roe):
+            continue
+        if max_de and b and float(b.debt_to_equity or 999) > float(max_de):
+            continue
+        result.append({
+            "company_id": c.company_id,
+            "company_name": c.company_name,
+            "roe_percentage": c.roe_percentage,
+            "roce_percentage": c.roce_percentage,
+            "debt_to_equity": b.debt_to_equity if b else None,
+            "health_label": h.health_label,
+            "overall_score": h.overall_score,
+        })
+
+    result.sort(key=lambda x: float(x["overall_score"] or 0), reverse=True)
+    return render(request, "screener.html", {
+        "companies": result,
+        "min_roe": min_roe,
+        "max_de": max_de,
+        "min_score": min_score,
+        "label": label,
+        "count": len(result),
+    })
