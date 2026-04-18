@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}All Companies — Bluestock{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-white">All Nifty 100 Companies</h3>
+        <input type="text" id="searchBox" class="form-control search-box w-25"
+               placeholder="🔍 Search..." value="{{ search_query }}">
+    </div>
+
+    <!-- Health Filter Buttons -->
+    <div class="mb-4">
+        <a href="/companies/" class="btn btn-sm btn-outline-light me-2 mb-2">All</a>
+        <a href="/companies/?label=EXCELLENT" class="btn btn-sm mb-2 me-2" style="background:#00c853;color:#000">Excellent</a>
+        <a href="/companies/?label=GOOD" class="btn btn-sm btn-primary mb-2 me-2">Good</a>
+        <a href="/companies/?label=AVERAGE" class="btn btn-sm mb-2 me-2" style="background:#ff9800;color:#000">Average</a>
+        <a href="/companies/?label=WEAK" class="btn btn-sm mb-2 me-2" style="background:#ff5722">Weak</a>
+        <a href="/companies/?label=POOR" class="btn btn-sm mb-2" style="background:#d32f2f">Poor</a>
+    </div>
+
+    <!-- Companies Table -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead style="border-bottom:1px solid #2d3150">
+                    <tr>
+                        <th>Company</th>
+                        <th>Symbol</th>
+                        <th>Health Score</th>
+                        <th>ROCE %</th>
+                        <th>ROE %</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for company in companies %}
+                    <tr>
+                        <td class="fw-bold">{{ company.company_name|truncatechars:30 }}</td>
+                        <td><span class="badge bg-secondary">{{ company.company_id }}</span></td>
+                        <td>
+                            <span class="badge badge-{{ company.health_label|lower }} px-3 py-1 rounded-pill">
+                                {{ company.health_label }} — {{ company.overall_score }}
+                            </span>
+                        </td>
+                        <td>{{ company.roce_percentage|default:"—" }}</td>
+                        <td>{{ company.roe_percentage|default:"—" }}</td>
+                        <td>
+                            <a href="/companies/{{ company.company_id }}/"
+                               class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p class="text-muted mt-3">Showing {{ companies|length }} companies</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('searchBox').addEventListener('input', function() {
+    const q = this.value;
+    window.location.href = '/companies/?search=' + q;
+});
+</script>
+{% endblock %}

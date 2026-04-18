@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Bluestock — Nifty 100 Intelligence{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <!-- Hero -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-white">Nifty 100 <span style="color:#4f8ef7">Financial Intelligence</span></h1>
+        <p class="lead text-muted">Real financial data for India's top 100 companies</p>
+        <input type="text" id="searchBox" class="form-control search-box w-50 mx-auto mt-4"
+               placeholder="🔍 Search company name or symbol...">
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-number">{{ total_companies }}</div>
+                <div class="text-muted">Companies</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-number" style="color:#00c853">{{ excellent_count }}</div>
+                <div class="text-muted">Excellent Health</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-number" style="color:#2979ff">{{ good_count }}</div>
+                <div class="text-muted">Good Health</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-number" style="color:#ff5722">{{ poor_count }}</div>
+                <div class="text-muted">Need Attention</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Companies -->
+    <h4 class="mb-3 text-white">🏆 Top Performing Companies</h4>
+    <div class="row g-3 mb-5">
+        {% for company in top_companies %}
+        <div class="col-md-4">
+            <a href="/companies/{{ company.company_id }}/" class="text-decoration-none">
+                <div class="card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-white">{{ company.company_name|truncatechars:25 }}</div>
+                            <small class="text-muted">{{ company.company_id }}</small>
+                        </div>
+                        <span class="badge badge-{{ company.health_label|lower }} px-3 py-2 rounded-pill">
+                            {{ company.overall_score }}
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- All Companies Button -->
+    <div class="text-center">
+        <a href="/companies/" class="btn btn-primary btn-lg px-5">
+            View All 92 Companies <i class="fas fa-arrow-right ms-2"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('searchBox').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    if (q.length > 1) {
+        window.location.href = '/companies/?search=' + q;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}{{ company.company_name }} — Bluestock{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="text-white fw-bold">{{ company.company_name }}</h2>
+                <span class="badge bg-secondary me-2">{{ company.company_id }}</span>
+                {% if company.website %}<a href="{{ company.website }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">Website</a>{% endif %}
+                {% if company.nse_profile %}<a href="{{ company.nse_profile }}" target="_blank" class="btn btn-sm btn-outline-success me-2">NSE</a>{% endif %}
+                <p class="text-muted mt-3">{{ company.about_company|default:""|truncatechars:300 }}</p>
+            </div>
+            <div class="col-md-4 text-center">
+                {% if health %}
+                <div class="stat-card">
+                    <div class="stat-number">{{ health.overall_score }}</div>
+                    <span class="badge badge-{{ health.health_label|lower }} px-3 py-2 rounded-pill fs-6">{{ health.health_label }}</span>
+                    <div class="row mt-3">
+                        <div class="col-6"><small class="text-muted">Profitability</small><div>{{ health.score_profitability }}</div></div>
+                        <div class="col-6"><small class="text-muted">Growth</small><div>{{ health.score_growth }}</div></div>
+                        <div class="col-6 mt-2"><small class="text-muted">Leverage</small><div>{{ health.score_leverage }}</div></div>
+                        <div class="col-6 mt-2"><small class="text-muted">Cash Flow</small><div>{{ health.score_cashflow }}</div></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="stat-card text-center"><div class="stat-number">{{ company.roce_percentage|default:"—" }}%</div><div class="text-muted">ROCE</div></div></div>
+        <div class="col-md-3"><div class="stat-card text-center"><div class="stat-number">{{ company.roe_percentage|default:"—" }}%</div><div class="text-muted">ROE</div></div></div>
+        <div class="col-md-3"><div class="stat-card text-center"><div class="stat-number">{{ company.face_value|default:"—" }}</div><div class="text-muted">Face Value</div></div></div>
+        <div class="col-md-3"><div class="stat-card text-center"><div class="stat-number">{{ company.book_value|default:"—" }}</div><div class="text-muted">Book Value</div></div></div>
+    </div>
+    <div class="card p-4 mb-4">
+        <h5 class="text-white mb-3">📈 Revenue & Profit Trend</h5>
+        <canvas id="revenueChart" height="100"></canvas>
+    </div>
+    <div class="card p-4 mb-4">
+        <h5 class="text-white mb-3">💰 Cash Flow Analysis</h5>
+        <canvas id="cashflowChart" height="100"></canvas>
+    </div>
+    <div class="text-center mb-4">
+        <a href="/companies/" class="btn btn-outline-light">← Back to Companies</a>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const plData = {{ profit_loss_json|safe }};
+const cfData = {{ cash_flow_json|safe }};
+new Chart(document.getElementById("revenueChart"), {
+    type: "bar",
+    data: {
+        labels: plData.map(r => r.year),
+        datasets: [
+            { label: "Sales", data: plData.map(r => r.sales), backgroundColor: "#4f8ef7" },
+            { label: "Net Profit", data: plData.map(r => r.net_profit), backgroundColor: "#00c853" }
+        ]
+    },
+    options: { plugins: { legend: { labels: { color: "#e0e0e0" }}},
+               scales: { x: { ticks: { color: "#e0e0e0" }}, y: { ticks: { color: "#e0e0e0" }}}}
+});
+new Chart(document.getElementById("cashflowChart"), {
+    type: "bar",
+    data: {
+        labels: cfData.map(r => r.year),
+        datasets: [
+            { label: "Operating", data: cfData.map(r => r.operating), backgroundColor: "#4f8ef7" },
+            { label: "Investing", data: cfData.map(r => r.investing), backgroundColor: "#ff9800" },
+            { label: "Free Cash Flow", data: cfData.map(r => r.free_cash_flow), backgroundColor: "#00c853" }
+        ]
+    },
+    options: { plugins: { legend: { labels: { color: "#e0e0e0" }}},
+               scales: { x: { ticks: { color: "#e0e0e0" }}, y: { ticks: { color: "#e0e0e0" }}}}
+});
+</script>
+{% endblock %}
