@@ -7,7 +7,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-bluestock-dev-key-change-in-production'
 DEBUG = True
+import os
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
