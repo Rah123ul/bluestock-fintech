@@ -100,7 +100,7 @@ def screener(request):
             "company_name": c.company_name,
             "roe_percentage": c.roe_percentage,
             "roce_percentage": c.roce_percentage,
-            "debt_to_equity": b.debt_to_equity if b else None,
+            "debt_to_equity": round(float(b.debt_to_equity), 2) if b and b.debt_to_equity else None,
             "health_label": h.health_label,
             "overall_score": h.overall_score,
         })
@@ -113,4 +113,41 @@ def screener(request):
         "min_score": min_score,
         "label": label,
         "count": len(result),
+    })
+
+
+def compare(request):
+    symbols = request.GET.get("symbols", "")
+    selected = [s.strip().upper() for s in symbols.split(",") if s.strip()]
+    
+    companies_data = []
+    for symbol in selected:
+        try:
+            c = Company.objects.get(company_id=symbol)
+            h = HealthScore.objects.filter(company_id=symbol).first()
+            from .models import BalanceSheet
+            b = BalanceSheet.objects.filter(company_id=symbol).order_by("-fiscal_year").first()
+            pl = ProfitLoss.objects.filter(company_id=symbol).order_by("-fiscal_year").first()
+            companies_data.append({
+                "company_id": c.company_id,
+                "company_name": c.company_name,
+                "roce": c.roce_percentage,
+                "roe": c.roe_percentage,
+                "health_label": h.health_label if h else "N/A",
+                "overall_score": h.overall_score if h else 0,
+                "debt_to_equity": round(float(b.debt_to_equity), 2) if b and b.debt_to_equity else None,
+                "borrowings": round(float(b.borrowings), 0) if b and b.borrowings else None,
+                "sales": pl.sales if pl else None,
+                "net_profit": pl.net_profit if pl else None,
+                "opm": pl.opm_percentage if pl else None,
+                "eps": pl.eps if pl else None,
+            })
+        except:
+            pass
+    
+    all_companies = Company.objects.all().order_by("company_name")
+    return render(request, "compare.html", {
+        "companies_data": companies_data,
+        "symbols": symbols,
+        "all_companies": all_companies,
     })

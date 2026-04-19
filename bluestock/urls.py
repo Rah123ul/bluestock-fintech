@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from companies.views import home, company_list, company_detail, screener
+from companies.views import home, company_list, company_detail, screener, compare
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('companies/', company_list, name='company-list'),
     path('companies/<str:company_id>/', company_detail, name='company-detail'),
     path('screener/', screener, name='screener'),
+    path('compare/', compare, name='compare'),
 ]

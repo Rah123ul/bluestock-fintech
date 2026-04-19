@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Compare Companies — Bluestock{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="text-white mb-4">⚖️ Compare Companies</h3>
+
+    <div class="card p-4 mb-4">
+        <form method="GET" action="/compare/">
+            <label class="text-muted mb-2">Select companies to compare (enter symbols separated by comma):</label>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="symbols" value="{{ symbols }}"
+                           class="form-control search-box"
+                           placeholder="e.g. TCS, INFY, HDFCBANK, WIPRO">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Compare</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="/compare/" class="btn btn-outline-light w-100">Reset</a>
+                </div>
+            </div>
+        </form>
+        <div class="mt-2">
+            <small class="text-muted">Quick picks: </small>
+            <a href="/compare/?symbols=TCS,INFY,WIPRO,HCLTECH" class="badge bg-secondary me-1">IT Giants</a>
+            <a href="/compare/?symbols=HDFCBANK,AXISBANK,BANKBARODA" class="badge bg-secondary me-1">Banks</a>
+            <a href="/compare/?symbols=ADANIENT,ADANIGREEN,ADANIPOWER" class="badge bg-secondary me-1">Adani Group</a>
+        </div>
+    </div>
+
+    {% if companies_data %}
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-dark mb-0">
+                <thead style="border-bottom:1px solid #2d3150">
+                    <tr>
+                        <th style="width:200px">Metric</th>
+                        {% for c in companies_data %}
+                        <th class="text-center">
+                            <div class="fw-bold text-white">{{ c.company_name|truncatechars:20 }}</div>
+                            <span class="badge bg-secondary">{{ c.company_id }}</span>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-muted">Health Score</td>
+                        {% for c in companies_data %}
+                        <td class="text-center">
+                            <span class="badge badge-{{ c.health_label|lower }} px-3 py-1 rounded-pill">
+                                {{ c.health_label }} — {{ c.overall_score }}
+                            </span>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td class="text-muted">ROCE %</td>
+                        {% for c in companies_data %}<td class="text-center text-white">{{ c.roce|default:"—" }}</td>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td class="text-muted">ROE %</td>
+                        {% for c in companies_data %}<td class="text-center text-white">{{ c.roe|default:"—" }}</td>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td class="text-muted">OPM %</td>
+                        {% for c in companies_data %}<td class="text-center text-white">{{ c.opm|default:"—" }}</td>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Latest Sales (Cr)</td>
+                        {% for c in companies_data %}<td class="text-center text-white">{{ c.sales|default:"—" }}</td>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Net Profit (Cr)</td>
+                        {% for c in companies_data %}<td class="text-center text-white">{{ c.net_profit|default:"—" }}</td>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td class="text-muted">EPS</td>
+                        {% for c in companies_data %}<td class="text-center text-white">{{ c.eps|default:"—" }}</td>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Debt/Equity</td>
+                        {% for c in companies_data %}<td class="text-center text-white">{{ c.debt_to_equity|default:"—" }}</td>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Details</td>
+                        {% for c in companies_data %}
+                        <td class="text-center">
+                            <a href="/companies/{{ c.company_id }}/" class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <h5 class="text-muted">Enter company symbols above to compare</h5>
+        <p class="text-muted">Example: TCS, INFY, WIPRO</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
