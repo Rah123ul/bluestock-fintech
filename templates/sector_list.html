@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Sectors — Bluestock{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="text-white mb-4">🏭 Sectors Overview</h3>
+    <div class="row g-4">
+        {% for sector in sectors %}
+        <div class="col-md-4">
+            <div class="card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-white mb-0">{{ sector.name }}</h5>
+                    <span class="badge bg-primary rounded-pill">{{ sector.count }} cos</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Avg Health Score</small>
+                    <div class="stat-number" style="font-size:1.5rem">{{ sector.avg_score }}</div>
+                </div>
+                <table class="table table-dark table-sm mb-0">
+                    <thead><tr><th>Company</th><th>Score</th></tr></thead>
+                    <tbody>
+                        {% for c in sector.companies|slice:":5" %}
+                        <tr>
+                            <td><a href="/companies/{{ c.company_id }}/">{{ c.company_name|truncatechars:20 }}</a></td>
+                            <td><span class="badge badge-{{ c.health_label|lower }}">{{ c.overall_score }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

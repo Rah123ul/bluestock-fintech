@@ -151,3 +151,60 @@ def compare(request):
         "symbols": symbols,
         "all_companies": all_companies,
     })
+
+
+def sector_list(request):
+    from collections import defaultdict
+    scores = {s.company_id: s for s in HealthScore.objects.all()}
+    companies = Company.objects.all()
+    
+    sectors = defaultdict(list)
+    sector_map = {
+        "TCS": "IT", "INFY": "IT", "WIPRO": "IT", "HCLTECH": "IT",
+        "TECHM": "IT", "LTIM": "IT", "PERSISTENT": "IT", "COFORGE": "IT",
+        "HDFCBANK": "Banking", "AXISBANK": "Banking", "BANKBARODA": "Banking",
+        "SBIN": "Banking", "KOTAKBANK": "Banking", "ICICIBANK": "Banking",
+        "INDUSINDBK": "Banking", "FEDERALBNK": "Banking", "IDFCFIRSTB": "Banking",
+        "ADANIENT": "Energy", "ADANIGREEN": "Energy", "ADANIPOWER": "Energy",
+        "ADANIENSOL": "Energy", "ATGL": "Energy", "ADANIPORTS": "Ports",
+        "NTPC": "Energy", "POWERGRID": "Energy", "TATAPOWER": "Energy",
+        "BAJFINANCE": "NBFC", "BAJAJFINSV": "NBFC", "CHOLAFIN": "NBFC",
+        "SBILIFE": "Insurance", "HDFCLIFE": "Insurance", "ICICIGI": "Insurance",
+        "APOLLOHOSP": "Healthcare", "SUNPHARMA": "Pharma", "DIVISLAB": "Pharma",
+        "CIPLA": "Pharma", "DRREDDY": "Pharma", "TORNTPHARM": "Pharma",
+        "ASIANPAINT": "Paint", "BERGEPAINT": "Paint",
+        "HINDUNILVR": "FMCG", "ITC": "FMCG", "NESTLEIND": "FMCG",
+        "BRITANNIA": "FMCG", "DABUR": "FMCG", "GODREJCP": "FMCG",
+        "MARUTI": "Auto", "BAJAJ-AUTO": "Auto", "HEROMOTOCO": "Auto",
+        "TATAMOTORS": "Auto", "EICHERMOT": "Auto", "TVSMOTORS": "Auto",
+        "AMBUJACEM": "Cement", "ULTRACEMCO": "Cement", "SHREECEM": "Cement",
+        "GRASIM": "Cement",
+        "RELIANCE": "Conglomerate", "LT": "Conglomerate",
+        "TATASTEEL": "Metal", "JSWSTEEL": "Metal", "HINDALCO": "Metal",
+        "COALINDIA": "Mining",
+    }
+    
+    for c in companies:
+        h = scores.get(c.company_id)
+        sector = sector_map.get(c.company_id, "Others")
+        sectors[sector].append({
+            "company_id": c.company_id,
+            "company_name": c.company_name,
+            "health_label": h.health_label if h else "N/A",
+            "overall_score": float(h.overall_score) if h else 0,
+            "roce": c.roce_percentage,
+            "roe": c.roe_percentage,
+        })
+    
+    sector_summary = []
+    for sector, cos in sorted(sectors.items()):
+        avg_score = sum(c["overall_score"] for c in cos) / len(cos)
+        sector_summary.append({
+            "name": sector,
+            "count": len(cos),
+            "avg_score": round(avg_score, 1),
+            "companies": sorted(cos, key=lambda x: x["overall_score"], reverse=True),
+        })
+    sector_summary.sort(key=lambda x: x["avg_score"], reverse=True)
+    
+    return render(request, "sector_list.html", {"sectors": sector_summary})
