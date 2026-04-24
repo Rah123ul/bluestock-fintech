@@ -2,51 +2,61 @@
 {% block title %}All Companies — Bluestock{% endblock %}
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="text-white">All Nifty 100 Companies</h3>
-        <input type="text" id="searchBox" class="form-control search-box w-25"
-               placeholder="🔍 Search..." value="{{ search_query }}">
+    <!-- Header & Search -->
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-8">
+            <h3 class="fw-bold m-0">Nifty 100 Companies</h3>
+            <p class="text-muted small m-0">Institutional-grade financial metrics and health scores</p>
+        </div>
+        <div class="col-md-4">
+            <div class="position-relative">
+                <i class="fas fa-search position-absolute text-muted" style="left: 12px; top: 12px;"></i>
+                <input type="text" id="searchBox" class="form-control search-box ps-5 shadow-sm"
+                       placeholder="Search name or symbol..." value="{{ search_query }}">
+            </div>
+        </div>
     </div>
 
-    <!-- Health Filter Buttons -->
-    <div class="mb-4">
-        <a href="/companies/" class="btn btn-sm btn-outline-light me-2 mb-2">All</a>
-        <a href="/companies/?label=EXCELLENT" class="btn btn-sm mb-2 me-2" style="background:#00c853;color:#000">Excellent</a>
-        <a href="/companies/?label=GOOD" class="btn btn-sm btn-primary mb-2 me-2">Good</a>
-        <a href="/companies/?label=AVERAGE" class="btn btn-sm mb-2 me-2" style="background:#ff9800;color:#000">Average</a>
-        <a href="/companies/?label=WEAK" class="btn btn-sm mb-2 me-2" style="background:#ff5722">Weak</a>
-        <a href="/companies/?label=POOR" class="btn btn-sm mb-2" style="background:#d32f2f">Poor</a>
+    <!-- Health Filter Section -->
+    <div class="d-flex flex-wrap align-items-center mb-4 gap-2">
+        <span class="text-muted small fw-bold me-2" style="text-transform: uppercase; letter-spacing: 0.5px;">Filter:</span>
+        <a href="/companies/" class="btn btn-sm btn-outline-secondary px-3 border bg-white text-dark">All</a>
+        <a href="/companies/?label=EXCELLENT" class="btn btn-sm badge-excellent px-3">Excellent</a>
+        <a href="/companies/?label=GOOD" class="btn btn-sm badge-good px-3">Good</a>
+        <a href="/companies/?label=AVERAGE" class="btn btn-sm badge-average px-3">Average</a>
+        <a href="/companies/?label=WEAK" class="btn btn-sm badge-weak px-3">Weak</a>
+        <a href="/companies/?label=POOR" class="btn btn-sm badge-poor px-3">Poor</a>
     </div>
 
-    <!-- Companies Table -->
-    <div class="card">
+    <!-- Companies Table Card -->
+    <div class="card border-0 shadow-sm overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-dark table-hover mb-0">
-                <thead style="border-bottom:1px solid #2d3150">
+            <table class="table table-hover mb-0">
+                <thead>
                     <tr>
-                        <th>Company</th>
+                        <th class="ps-4">Company</th>
                         <th>Symbol</th>
                         <th>Health Score</th>
-                        <th>ROCE %</th>
-                        <th>ROE %</th>
-                        <th>Details</th>
+                        <th class="text-end">ROCE %</th>
+                        <th class="text-end">ROE %</th>
+                        <th class="text-center pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for company in companies %}
                     <tr>
-                        <td class="fw-bold">{{ company.company_name|truncatechars:30 }}</td>
-                        <td><span class="badge bg-secondary">{{ company.company_id }}</span></td>
+                        <td class="ps-4 fw-bold text-dark">{{ company.company_name|truncatechars:35 }}</td>
+                        <td><span class="badge bg-light text-muted border">{{ company.company_id }}</span></td>
                         <td>
                             <span class="badge badge-{{ company.health_label|lower }} px-3 py-1 rounded-pill">
                                 {{ company.health_label }} — {{ company.overall_score }}
                             </span>
                         </td>
-                        <td>{{ company.roce_percentage|default:"—" }}</td>
-                        <td>{{ company.roe_percentage|default:"—" }}</td>
-                        <td>
+                        <td class="text-end fw-bold text-primary">{{ company.roce_percentage|default:"—" }}</td>
+                        <td class="text-end fw-bold text-primary">{{ company.roe_percentage|default:"—" }}</td>
+                        <td class="text-center pe-4">
                             <a href="/companies/{{ company.company_id }}/"
-                               class="btn btn-sm btn-outline-primary">View</a>
+                               class="btn btn-sm btn-outline-primary px-3 rounded-pill fw-bold">View Metrics</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -54,14 +64,23 @@
             </table>
         </div>
     </div>
-    <p class="text-muted mt-3">Showing {{ companies|length }} companies</p>
+    
+    <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+        <p class="text-muted small">Showing {{ companies|length }} companies</p>
+        <div class="text-muted small">Data powered by Nifty 100 Intelligence</div>
+    </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
+let searchTimer;
 document.getElementById('searchBox').addEventListener('input', function() {
+    clearTimeout(searchTimer);
     const q = this.value;
-    window.location.href = '/companies/?search=' + q;
+    searchTimer = setTimeout(() => {
+        window.location.href = '/companies/?search=' + q;
+    }, 500);
 });
 </script>
 {% endblock %}

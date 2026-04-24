@@ -2,55 +2,64 @@
 {% block title %}Bluestock — Nifty 100 Intelligence{% endblock %}
 {% block content %}
 <div class="container mt-5">
-    <!-- Hero -->
+    <!-- Hero Section -->
     <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold text-white">Nifty 100 <span style="color:#4f8ef7">Financial Intelligence</span></h1>
-        <p class="lead text-muted">Real financial data for India's top 100 companies</p>
-        <input type="text" id="searchBox" class="form-control search-box w-50 mx-auto mt-4"
-               placeholder="🔍 Search company name or symbol...">
+        <h1 class="display-4 fw-bold">Nifty 100 <span style="color:var(--primary-blue)">Financial Intelligence</span></h1>
+        <p class="lead text-muted">Institutional-grade financial data for India's top 100 companies</p>
+        
+        <div class="position-relative w-50 mx-auto mt-4">
+            <i class="fas fa-search position-absolute text-muted" style="left: 15px; top: 15px;"></i>
+            <input type="text" id="searchBox" class="form-control search-box ps-5 shadow-sm" 
+                   style="height: 50px; font-size: 1.1rem; border-radius: 10px; border: 1px solid var(--border-color);"
+                   placeholder="Search company name or symbol (e.g. Reliance, TCS)...">
+        </div>
     </div>
 
-    <!-- Stats -->
+    <!-- Stats Section -->
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-number">{{ total_companies }}</div>
-                <div class="text-muted">Companies</div>
+            <div class="card p-3 text-center border-0 shadow-sm">
+                <div class="h2 fw-bold text-dark">{{ total_companies }}</div>
+                <div class="text-muted small fw-600" style="text-transform: uppercase; letter-spacing: 1px;">Companies</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-number" style="color:#00c853">{{ excellent_count }}</div>
-                <div class="text-muted">Excellent Health</div>
+            <div class="card p-3 text-center border-0 shadow-sm">
+                <div class="h2 fw-bold text-success">{{ excellent_count }}</div>
+                <div class="text-muted small fw-600" style="text-transform: uppercase; letter-spacing: 1px;">Excellent Health</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-number" style="color:#2979ff">{{ good_count }}</div>
-                <div class="text-muted">Good Health</div>
+            <div class="card p-3 text-center border-0 shadow-sm">
+                <div class="h2 fw-bold text-primary">{{ good_count }}</div>
+                <div class="text-muted small fw-600" style="text-transform: uppercase; letter-spacing: 1px;">Good Health</div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card text-center">
-                <div class="stat-number" style="color:#ff5722">{{ poor_count }}</div>
-                <div class="text-muted">Need Attention</div>
+            <div class="card p-3 text-center border-0 shadow-sm">
+                <div class="h2 fw-bold text-danger">{{ poor_count }}</div>
+                <div class="text-muted small fw-600" style="text-transform: uppercase; letter-spacing: 1px;">Need Attention</div>
             </div>
         </div>
     </div>
 
-    <!-- Top Companies -->
-    <h4 class="mb-3 text-white">🏆 Top Performing Companies</h4>
+    <!-- Top Companies Section -->
+    <div class="d-flex align-items-center mb-4">
+        <h4 class="fw-bold m-0">🏆 Top Performing Companies</h4>
+        <div class="ms-3 flex-grow-1 border-bottom"></div>
+    </div>
+    
     <div class="row g-3 mb-5">
         {% for company in top_companies %}
         <div class="col-md-4">
             <a href="/companies/{{ company.company_id }}/" class="text-decoration-none">
-                <div class="card p-3">
+                <div class="card p-3 h-100 border-0 shadow-sm hover-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="fw-bold text-white">{{ company.company_name|truncatechars:25 }}</div>
+                            <div class="fw-bold text-dark">{{ company.company_name|truncatechars:25 }}</div>
                             <small class="text-muted">{{ company.company_id }}</small>
                         </div>
-                        <span class="badge badge-{{ company.health_label|lower }} px-3 py-2 rounded-pill">
+                        <span class="badge badge-{{ company.health_label|lower }} px-3 py-2 rounded-pill shadow-sm">
                             {{ company.overall_score }}
                         </span>
                     </div>
@@ -61,19 +70,32 @@
     </div>
 
     <!-- All Companies Button -->
-    <div class="text-center">
-        <a href="/companies/" class="btn btn-primary btn-lg px-5">
-            View All 92 Companies <i class="fas fa-arrow-right ms-2"></i>
+    <div class="text-center mb-5">
+        <a href="/companies/" class="btn btn-primary btn-lg px-5 py-3 shadow">
+            Explore All 92 Companies <i class="fas fa-arrow-right ms-2"></i>
         </a>
     </div>
 </div>
+
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+    }
+</style>
 {% endblock %}
+
 {% block scripts %}
 <script>
-document.getElementById('searchBox').addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    if (q.length > 1) {
-        window.location.href = '/companies/?search=' + q;
+document.getElementById('searchBox').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        const q = this.value.toLowerCase().trim();
+        if (q.length > 0) {
+            window.location.href = '/companies/?search=' + q;
+        }
     }
 });
 </script>
