@@ -1,0 +1,59 @@
+/*
+Power BI DAX Measures for Bluestock Fintech
+Assumes Postgres Tables: dim_company, fact_profit_loss, fact_balance_sheet, fact_cash_flow, fact_ml_scores
+*/
+
+// 1. Latest Year Sales
+// Uses LASTDATE to dynamically pick up the most recent period available in the context
+Latest Year Sales = 
+CALCULATE(
+    SUM('fact_profit_loss'[sales]),
+    'fact_profit_loss'[year_label] = LASTDATE('fact_profit_loss'[year_label])
+)
+
+// 2. YoY Revenue Growth %
+// Uses DIVIDE for safe division and CALCULATE/PREVIOUSYEAR for time intelligence
+YoY Revenue Growth % = 
+VAR CurrentSales = CALCULATE(SUM('fact_profit_loss'[sales]))
+VAR PreviousSales = CALCULATE(
+    SUM('fact_profit_loss'[sales]),
+    SAMEPERIODLASTYEAR('fact_profit_loss'[year_label])
+)
+RETURN 
+DIVIDE(CurrentSales - PreviousSales, PreviousSales, 0)
+
+// 3. Average OPM %
+Average OPM % = 
+AVERAGE('fact_profit_loss'[opm_percentage])
+
+// 4. Latest Debt to Equity
+Latest Debt to Equity = 
+CALCULATE(
+    AVERAGE('fact_balance_sheet'[debt_to_equity]),
+    'fact_balance_sheet'[year_label] = LASTDATE('fact_balance_sheet'[year_label])
+)
+
+// 5. Health Score Color
+// Returns hex codes based on the ML health label for conditional formatting
+Health Score Color = 
+SWITCH(
+    SELECTEDVALUE('fact_ml_scores'[health_label]),
+    "EXCELLENT", "#10B981", // Green
+    "GOOD",      "#34D399", // Light Green
+    "AVERAGE",   "#FBBF24", // Yellow
+    "WEAK",      "#F97316", // Orange
+    "POOR",      "#EF4444", // Red
+    "#9CA3AF"               // Gray fallback
+)
+
+// 6. Top 10 Companies by Score
+// Uses RANKX over the company dimension to assign a rank based on overall_score.
+// Can be used as a visual level filter (Rank <= 10).
+Company Score Rank = 
+RANKX(
+    ALL('dim_company'),
+    CALCULATE(MAX('fact_ml_scores'[overall_score])),
+    ,
+    DESC,
+    Dense
+)

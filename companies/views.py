@@ -1,6 +1,8 @@
 import json
 from django.shortcuts import render, get_object_or_404
 from rest_framework import generics
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from .models import Company, HealthScore, ProfitLoss, BalanceSheet, CashFlow
 from .serializers import CompanyListSerializer, CompanyDetailSerializer
 
@@ -208,3 +210,84 @@ def sector_list(request):
     sector_summary.sort(key=lambda x: x["avg_score"], reverse=True)
     
     return render(request, "sector_list.html", {"sectors": sector_summary})
+
+
+# --- New API Endpoints ---
+
+@api_view(['GET'])
+def company_charts_api(request, company_id):
+    pl_qs = ProfitLoss.objects.filter(company_id=company_id).order_by('fiscal_year')
+    bs_qs = BalanceSheet.objects.filter(company_id=company_id).order_by('fiscal_year')
+    cf_qs = CashFlow.objects.filter(company_id=company_id).order_by('fiscal_year')
+    
+    return Response({
+        'profit_loss': list(pl_qs.values('year_label', 'sales', 'expenses', 'net_profit', 'opm_percentage')),
+        'balance_sheet': list(bs_qs.values('year_label', 'equity_capital', 'reserves', 'borrowings', 'total_assets', 'debt_to_equity')),
+        'cash_flow': list(cf_qs.values('year_label', 'operating_activity', 'investing_activity', 'financing_activity', 'free_cash_flow'))
+    })
+
+
+@api_view(['GET'])
+def screener_api(request):
+    min_roe = request.GET.get('min_roe')
+    max_de = request.GET.get('max_de')
+    min_score = request.GET.get('min_score')
+    
+    companies = Company.objects.all()
+    if min_roe:
+        try:
+            # We filter in Python below since 'managed=False' models can have varied data quality, 
+            # but an initial DB filter if field allows it is okay. We'll handle it during the loop to be safe.
+            pass
+        except ValueError:
+            pass
+            
+    scores = {s.company_id: s for s in HealthScore.objects.all()}
+    
+    # Pre-fetch the latest balance sheet per company for debt_to_equity
+    bs_qs = BalanceSheet.objects.all().order_by('fiscal_year')
+    bs_data = {b.company_id: b for b in bs_qs}
+    
+    result = []
+    for c in companies:
+        h = scores.get(c.company_id)
+        b = bs_data.get(c.company_id)
+        
+        # 1. Filter by Health Score
+        if min_score and (not h or float(h.overall_score or 0) < float(min_score)):
+            continue
+            
+        # 2. Filter by ROE
+        if min_roe and float(c.roe_percentage or 0) < float(min_roe):
+            continue
+            
+        # 3. Filter by D/E
+        if max_de and (not b or float(b.debt_to_equity or 999) > float(max_de)):
+            continue
+            
+        result.append({
+            'company_id': c.company_id,
+            'company_name': c.company_name,
+            'roe_percentage': c.roe_percentage,
+            'debt_to_equity': b.debt_to_equity if b else None,
+            'overall_score': h.overall_score if h else None,
+            'health_label': h.health_label if h else None
+        })
+        
+    # Sort by overall score descending
+    result.sort(key=lambda x: float(x['overall_score'] or 0), reverse=True)
+    return Response(result)
+
+
+@api_view(['GET'])
+def health_scores_api(request):
+    scores = HealthScore.objects.all().order_by('-overall_score')
+    data = []
+    for s in scores:
+        data.append({
+            'company_id': s.company_id,
+            'company_name': s.company_name,
+            'overall_score': s.overall_score,
+            'health_label': s.health_label
+        })
+    return Response(data)
